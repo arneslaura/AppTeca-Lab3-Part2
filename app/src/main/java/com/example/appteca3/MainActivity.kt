@@ -6,6 +6,7 @@ import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -29,6 +30,7 @@ import com.example.appteca3.ui.theme.AppTeca3Theme
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Button
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -40,6 +42,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.compose.ui.text.input.PasswordVisualTransformation
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -101,6 +104,13 @@ fun ListaApps(
 
 @Composable
 fun PantallaAppTeca(vm: AppTecaViewModel = viewModel()) {
+    val usuario by vm.usuario.collectAsStateWithLifecycle()
+
+    if (usuario == null) {
+        PantallaEntrada(vm)
+        return
+    }
+
     val navController = rememberNavController()
 
     NavHost(navController = navController, startDestination = "lista") {
@@ -109,12 +119,14 @@ fun PantallaAppTeca(vm: AppTecaViewModel = viewModel()) {
         composable("lista") {
             val lista by vm.listaVisible.collectAsStateWithLifecycle()
             val modoFav by vm.modoSoloFavoritas.collectAsStateWithLifecycle()
-            val textoBusqueda by vm.textoBusqueda.collectAsStateWithLifecycle()
+
+            var textoBusqueda by rememberSaveable { mutableStateOf("") }
 
             Column(modifier = Modifier.fillMaxSize().systemBarsPadding()) {
                 OutlinedTextField(
                     value = textoBusqueda,
                     onValueChange = { nuevo ->
+                        textoBusqueda = nuevo
                         vm.buscar(nuevo)
                     },
                     label = { Text("Buscar por nombre o categoría...") },
@@ -125,6 +137,12 @@ fun PantallaAppTeca(vm: AppTecaViewModel = viewModel()) {
                     modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp)
                 ) {
                     Text(if (modoFav) "★ Solo favoritas" else "☆ Todas")
+                }
+                TextButton(
+                    onClick = { vm.salir() },
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text("Cerrar sesión (${usuario?.email ?: ""})")
                 }
 
                 ListaApps(
@@ -167,6 +185,52 @@ fun DetalleApp (app: App, onFavoritoClick: () -> Unit, onVolver: () -> Unit) {
         Spacer (Modifier.height(24.dp))
         Button (onClick = onFavoritoClick) {
             Text (if (app.esFavorita) "★ Quitar de favoritas" else "☆ Marcar favorita")
+        }
+    }
+}
+
+@Composable
+fun PantallaEntrada(vm: AppTecaViewModel) {
+    var email by rememberSaveable { mutableStateOf("") }
+    var pass by rememberSaveable { mutableStateOf("") }
+    val error by vm.errorAuth.collectAsStateWithLifecycle()
+
+    Column(
+        modifier = Modifier.fillMaxSize().padding(24.dp),
+        verticalArrangement = Arrangement.Center
+    ) {
+        Text("AppTeca", style = MaterialTheme.typography.headlineLarge)
+        Spacer(Modifier.height(24.dp))
+
+        OutlinedTextField(
+            value = email,
+            onValueChange = { email = it },
+            label = { Text("Email") },
+            modifier = Modifier.fillMaxWidth()
+        )
+
+        OutlinedTextField(
+            value = pass,
+            onValueChange = { pass = it },
+            label = { Text("Contraseña (mínimo 6)") },
+            visualTransformation = PasswordVisualTransformation(),
+            modifier = Modifier.fillMaxWidth()
+        )
+
+        Spacer(Modifier.height(16.dp))
+        Button(
+            onClick = { vm.entrar(email.trim(), pass) },
+            modifier = Modifier.fillMaxWidth()
+        ) { Text("Entrar") }
+
+        TextButton(
+            onClick = { vm.registrar(email.trim(), pass) },
+            modifier = Modifier.fillMaxWidth()
+        ) { Text("Crear cuenta nueva") }
+
+        if (error != null) {
+            Spacer(Modifier.height(8.dp))
+            Text(error!!, color = MaterialTheme.colorScheme.error)
         }
     }
 }

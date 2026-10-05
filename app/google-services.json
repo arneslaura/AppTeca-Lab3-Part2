@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "548059824965",
+    "project_id": "appteca-cc93c",
+    "storage_bucket": "appteca-cc93c.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:548059824965:android:84f84107966b76226b742c",
+        "android_client_info": {
+          "package_name": "com.example.appteca3"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDoqNoPBvAR2ZmSwHeLltXDqaevgPd1_ts"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
